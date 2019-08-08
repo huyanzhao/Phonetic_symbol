@@ -94,10 +94,10 @@ class MainWindow(QWidget, widget.Ui_Form):
                 self.progressBar.setMaximum(len(word_list))
                 i = 0
                 for word in word_list:
+                    word = word.strip(':')
                     if word.strip('\'') == "":
                         continue
                     if word not in dictionary.keys():
-                        word = word.strip(':')
                         self.log("开始翻译%s" % word)
                         query['w'] = word
                         data = parse.urlencode(query)
@@ -133,7 +133,7 @@ class MainWindow(QWidget, widget.Ui_Form):
 
     def log(self, message):
         with open(self.log_file, 'a', encoding='utf-8') as fp:
-            fp.write(message + '\r\n')
+            fp.write(message + '\n')
         self.textBrowser_detail.append(message)
 
 
