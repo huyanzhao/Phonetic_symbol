@@ -3,6 +3,7 @@
 /log/
 /.idea/
 .gitignore
+*.doc
 *.py[cod]
 *$py.class
 
