@@ -44,7 +44,6 @@ class MainWindow(QWidget, widget.Ui_Form):
         with open(self.log_file, 'w', encoding='utf-8') as fp:
             fp.write(self.file_name)
         self.result_file = os.path.join(self.path, file_name + '_phonetic' + tail)
-        dictionary = {}
         with open('dictionary.json', 'r') as fp:
             dictionary = json.load(fp)
 
@@ -88,7 +87,7 @@ class MainWindow(QWidget, widget.Ui_Form):
             clause_list = sentence.split(',')
             self.log("使用逗号分割后得到%d个分句：%s" % (len(clause_list), str(clause_list)))
             for clause in clause_list:
-                word_list = clause.strip().split(' ')
+                word_list = clause.strip().strip('\'').split(' ')
                 phonetic += '['
                 self.textBrowser.setText(phoneticed_text + phonetic + '\r\n' + sentence)
                 self.log("使用空格分割得到%d个单词：%s" % (len(word_list), str(word_list)))
@@ -98,6 +97,7 @@ class MainWindow(QWidget, widget.Ui_Form):
                     if word.strip('\'') == "":
                         continue
                     if word not in dictionary.keys():
+                        word = word.strip(':')
                         self.log("开始翻译%s" % word)
                         query['w'] = word
                         data = parse.urlencode(query)
