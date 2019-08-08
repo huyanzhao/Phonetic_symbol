@@ -44,6 +44,9 @@ class MainWindow(QWidget, widget.Ui_Form):
         with open(self.log_file, 'w', encoding='utf-8') as fp:
             fp.write(self.file_name)
         self.result_file = os.path.join(self.path, file_name + '_phonetic' + tail)
+        dictionary = {}
+        with open('dictionary.json', 'r') as fp:
+            dictionary = json.load(fp)
 
         seq_list = ['\n', '.', '!', '?']
         sentence_list = [self.content]
@@ -83,29 +86,36 @@ class MainWindow(QWidget, widget.Ui_Form):
             self.textBrowser.setText(phoneticed_text + sentence)
             self.log("开始解析语句：%s" % sentence)
             clause_list = sentence.split(',')
-            self.log("使用, 分割后得到%d个分句：%s" % (len(clause_list), str(clause_list)))
+            self.log("使用逗号分割后得到%d个分句：%s" % (len(clause_list), str(clause_list)))
             for clause in clause_list:
-                word_list = clause.split(' ')
+                word_list = clause.strip().split(' ')
                 phonetic += '['
                 self.textBrowser.setText(phoneticed_text + phonetic + '\r\n' + sentence)
                 self.log("使用空格分割得到%d个单词：%s" % (len(word_list), str(word_list)))
                 self.progressBar.setMaximum(len(word_list))
                 i = 0
                 for word in word_list:
-                    self.log("开始翻译%s" % word)
                     if word.strip('\'') == "":
                         continue
-                    query['w'] = word
-                    data = parse.urlencode(query)
-                    response = request.Request(url=base_url, headers=header, data=bytes(data, encoding="utf-8"))
-                    time.sleep(0.1)
-                    req = request.urlopen(response).read().decode("utf-8")
-                    obj = json.loads(req)
-                    self.log("%s的翻译结果：%s" % (word, obj['content']))
-                    if 'ph_en' not in obj['content'].keys():
-                        print(word, obj['content'])
-                        continue
-                    phonetic += ' ' + obj['content']['ph_en'] + ' '
+                    if word not in dictionary.keys():
+                        self.log("开始翻译%s" % word)
+                        query['w'] = word
+                        data = parse.urlencode(query)
+                        response = request.Request(url=base_url, headers=header, data=bytes(data, encoding="utf-8"))
+                        time.sleep(0.1)
+                        req = request.urlopen(response).read().decode("utf-8")
+                        obj = json.loads(req)
+                        self.log("%s的翻译结果：%s" % (word, obj['content']))
+                        if 'ph_en' not in obj['content'].keys():
+                            print(word, obj['content'])
+                            continue
+                        ph_en = obj['content']['ph_en']
+                        ph_en = ph_en.replace('(', '').replace(')', '')
+                        if ph_en != '':
+                            dictionary[word] = ph_en
+                    else:
+                        ph_en = dictionary[word]
+                    phonetic += ' ' + ph_en + ' '
                     self.textBrowser.setText(phoneticed_text + phonetic + '\r\n' + sentence)
                     i += 1
                     self.progressBar.setValue(i)
@@ -114,6 +124,8 @@ class MainWindow(QWidget, widget.Ui_Form):
             phoneticed_text += phonetic + '\r\n' + sentence + '\r\n'
             with open(self.result_file, 'w', encoding="utf-8") as fp:
                 fp.write(phoneticed_text)
+        with open('dictionary.json', 'w') as fp:
+            json.dump(dictionary, fp)
         self.log("标注音标完毕！耗时：%f秒" % (time.time()-start))
 
     def on_pushButton_log_click(self):
