@@ -55,13 +55,11 @@ class MainWindow(QWidget, widget.Ui_Form):
             for sentence in sentence_list:
                 sentence_list_temp = sentence.split(seq)
                 self.progressBar.setMaximum(len(sentence_list))
-                i = 0
-                for item in sentence_list_temp:
+                for i, item in enumerate(sentence_list_temp):
                     item = item.strip(' ')
                     item = item.strip('\'')
                     item = item.strip('"')
-                    i += 1
-                    self.progressBar.setValue(i)
+                    self.progressBar.setValue(i+1)
                     if item != '':
                         result_list.append(item.strip())
                         self.log("得到语句：%s" % item)
@@ -92,8 +90,7 @@ class MainWindow(QWidget, widget.Ui_Form):
                 self.textBrowser.setText(phoneticed_text + phonetic + '\r\n' + sentence)
                 self.log("使用空格分割得到%d个单词：%s" % (len(word_list), str(word_list)))
                 self.progressBar.setMaximum(len(word_list))
-                i = 0
-                for word in word_list:
+                for i, word in enumerate(word_list):
                     word = word.strip(':')
                     if word.strip('\'') == "":
                         continue
@@ -117,8 +114,7 @@ class MainWindow(QWidget, widget.Ui_Form):
                         ph_en = dictionary[word]
                     phonetic += ' ' + ph_en + ' '
                     self.textBrowser.setText(phoneticed_text + phonetic + '\r\n' + sentence)
-                    i += 1
-                    self.progressBar.setValue(i)
+                    self.progressBar.setValue(i+1)
                 phonetic += ']'
                 self.textBrowser.setText(phoneticed_text + phonetic + '\r\n' + sentence)
             phoneticed_text += phonetic + '\r\n' + sentence + '\r\n'
